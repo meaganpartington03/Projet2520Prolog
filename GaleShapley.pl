@@ -116,7 +116,130 @@ tryMatch(ResidentID, ProgramID, Ms, NewMs) :-
     ResRank < LeastRank, !, %le nouveau resident est plus preferer (couper)
     delete(Matched, LeastR, NewMatched), %retirer le moins preferer de la liste
     updateMatch(ProgramID, [ResidentID|NewMatched], Ms, NewMs). %ajouter le nouveau resident a sa place
-    
+----------
+
+% essaie dapparier un resident avec chaque programme de sa liste de preferences
+% si la liste de preferences est epuisee, retourner lensemble inchage
+
+tryOffer(_, [], Ms, Ms).
+
+% on essaye le premier programme, arreter si succes
+
+tryOffer(ResidentID< [P|_], Ms, NewMs) :-
+    tryMatch(ResidentID, P, Ms, NewMs), !. % essayer le programme P, couper si reussi
+
+% sinon essayer le prochain programme dans la liste de preferences
+
+tryOffer(ResidentID, Rest, Ms, NewMs). % passer au programme suivant
+-------------------------
 
 
+% essaye dassigner un programme a un resident
+% le resident est deja apparie, retourner lensemble inchange
+
+offer(ResidentID, Ms, Ms) :-
+    matched(ResidentID, _, Ms), !. % deja apparie, coupet et ne rien changer
+
+% le resident nest pas apparie, essayer chaque programme de sa ROL
+
+offer(ResidentID, Ms, NewMs) :-
+    resident(ResidentID, _, Prefs), % recuperer la liste de preferences du resident
+    tryOffer(ResidentID, Prefs, Ms, NewMs). % essayer chaque programme dans lordre de preference
+-----------------
+
+
+% appelle offer pour chaque resident de la liste
+% aucun resident a traiter
+
+processAll([], Ms, Ms).
+
+% Offrir un jumelage au premier resident, puis continuer
+
+processAll([R|Reset], Ms, FinalMs) :-
+    offer(R, Ms, TempMs), % offrir un jumelage au resident R
+    processAll(Rest, TempMs, FinalMs). % continuer avec le reste des residents
+------------------
+
+% repete la boucle de jumelge jusqua ce que lensemble soit stable
+
+iterate(Ms, FinalMs) :-
+    findall(R, resident(R, _, _), Residents), % obtenir la liste de tous les residents
+    processAll(Residents, Ms, NewMs), % effectuer un passage complet sur tous les residents
+
+    (Ms == NewMs ->     % verifier si lensemble a changer apres ce passage
+        FinalMs = NewMs ;   % stable : lensemble ne change plus alors on a terminer
+        iterate(NewMs, FinalMs)     % pas stable : relancer un autre passage complet
+    ).
+------------------------------
+
+% Affiche tous les residents apparies, groupe par programme
+% Aucun programme a afficher
+
+printMatched([]).
+
+% Afficher les residents du programme courant, puis continuer
+
+printMatched([match(P, Residents)|Rest]) :-
+    printResidentsOfProgram(P, Residents),  % afficher tous les residents de ce programme
+    printMatched(Rest). % continuer avec le reste des programmes
+---------------------
+
+% affiche chaque resident apparie a un programme donner
+% aucun de residants dans ce programme
+
+printResidentsOfProgram(_, []).
+
+% afficher le resident courant, puis continuer
+
+printResidentsOfProgram(P, [R|Rest]) :-
+    writeMatchInfo(R, P),  % afficher les infos du resident R avec writeMatchInfo fourni
+
+    printResidentsOfProgram(P, Rest).  % continuer avec le reste des resdients
+----------------------
+
+% affiche tous les residents qui nont pas ete appries
+
+printUnmatched(Ms) :-
+    findall(R, (resident(R, _, _), \+ matched(R, _, Ms)), Unmatched), % collecter tous les residents non-appariers
+    printUnmatchedList(Unmatched). % les afficher un par un
+------------
+
+% affiche chaque resident non apparier dans le bon format
+% aucun residents non appariers
+
+printUnmatchedList([]).
+
+printUnmatchedList([R|Rest]) :-
+    resident(R, name(FN,LN), _),   % recuperer le nom du resident
+    write(LN), write(','),         % afficher le nom de famille
+    write(FN), write(','),         % afficher le prenom
+    write(R), write(','),          % afficher lidentifiant du resident
+    write('XXX'), write(','),      % aucun programme assigne
+    writeln('NOT_MATCHED'),        % etiquette indiquant non-apparie
+    printUnmatchedList(Rest).      % continuer avec le reste
+-------------------
+
+% compte le nombre de residents non appariers
+
+countUnmatched(Ms, Count) :-
+    findall(R, (resident(R, _, _), \+ matched(R, _, Ms)), Unmatched),  % collecter les non-appariers
+--------------------
+
+% compte le total des postes non remplis dans tous les programmes.
+% plus de programmes, 0 postes disponibles
+
+countAvailablePositions([], 0).
+
+% calculer les postes disponibles du programme courant, puis faire la somme
+
+countAvailablePositions([match(P, Matched)|Rest], Total) :-
+    program(P, _, Cap, _), % obtenir la capaciter maximale du programme
+    length(Matched, Filled), % compter le nombre de postes deja remplies
+    Available is Cap - Filled, % calculer le nombre de postes encore disponibles
+    countAvailablePositions(Rest, RestTotal), % calculer le reste
+    Total is Available + RestTotal. % additionner pour obtenir le total
+------------------------
+
+
+% gale shapley
 
