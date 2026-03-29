@@ -2,6 +2,17 @@
 % Par : Meagan Partington 300416906
 % Anstasia Sardovskyy 300
 
+% Tests pour petit fichier
+
+% :- [rp].
+
+% Tests pour grand fichier
+
+:- [rp4000].
+
+
+
+
 % Donner par le prof
 
 resident(574, name(salvatore,williams), [nrs,hep,mmi]).
