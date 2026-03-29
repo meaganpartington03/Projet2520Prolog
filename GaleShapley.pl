@@ -27,7 +27,9 @@ test(2):-leastPreferred(nrs,[403, 517, 226, 828],Rid,Rank),write(Rid),write(' ')
 test(3):-Ms = [match(nrs, [517]), match(obg, []), match(mmi, [126]),match(hep, [226,574])], matched(226,P,Ms),write(P).
 test(4):-M=[match(nrs, []), match(obg, []), match(mmi, [126]),match(hep, [226,574])], offer(517,M, NewM),write(NewM).
 test(5):-M = [match(nrs, [517]), match(obg, []), match(mmi, [126]),match(hep, [226,574])], offer(403,M, NewM),write(NewM).
-------------------
+
+
+
 
 % Donner par le prof (predicat daffichage)
 % Affiche une ligne de resultat pour un resident apparie
@@ -37,14 +39,19 @@ writeMatchInfo(ResidentID,ProgramID):-
     program(ProgramID,TT,_,_),write(LN),write(','),
     write(FN),write(','),write(ResidentID),write(','),
     write(ProgramID),write(','),writeln(TT).
--------------------
+
+
+
 
 % calcule le rang dun resident dans le ROL dun programme
 
 rankInProgram(ResidentID, ProgramID, Rank) :-
     program(ProgramID, _, _, ROL), %recuperer la liste de preference du programme
     nth1(Rank, ROL, ResidentID). %trouver la position 1-base du resident dans cette liste
--------------------
+
+
+
+
 
 
 % Identifie le resident le moins prefere dans une liste
@@ -63,7 +70,10 @@ leastPreferred(ProgramID, [R|Rest], LeastR, LeastRank) :-
     (RRank > TempRank ->  %si la tete a un rang plus eleve (AKA moins prefere)
     LeastR = R, LeastRank = RRank ; %la tete devient le moins prefere
     LeastR = TempR, LeastRank = TempRank). %sinon garder le moins prefere du reste
-------------------
+
+
+
+
 
 
 %Verifie si un resident est deja apparie a un programme dans lensemble courant
@@ -76,7 +86,9 @@ matched(ResidentID, ProgramID, [match(ProgramID, Residents)|_]) :-
 
 matched(ResidentID, ProgramID, [_|Rest]) :-
     matched(ResidentID, ProgramID, Rest). %continuer la recherche dans le reste
---------------
+
+
+
 
 
 %Remplace la liste de residents dun programme dans lensemble dappariments
@@ -86,9 +98,11 @@ updateMatch(ProgramID, NewRes, [match(ProgramID, _)|Rest], [match(ProgramID, New
 
 %Si cest recursif garder le match courant et continuer le recherche
 
-updateMatch(ProgramID, NewResm [M|Rest], [M|NewRest]) :-
+updateMatch(ProgramID, NewRes, [M|Rest], [M|NewRest]) :-
     updateMatch(ProgramID, NewRes, Rest, NewRest). %continuer jusquau bon programme
-----------------
+
+
+
 
 
 %Essaie dapparier un resident a un programme specifique
@@ -116,7 +130,9 @@ tryMatch(ResidentID, ProgramID, Ms, NewMs) :-
     ResRank < LeastRank, !, %le nouveau resident est plus preferer (couper)
     delete(Matched, LeastR, NewMatched), %retirer le moins preferer de la liste
     updateMatch(ProgramID, [ResidentID|NewMatched], Ms, NewMs). %ajouter le nouveau resident a sa place
-----------
+
+
+
 
 % essaie dapparier un resident avec chaque programme de sa liste de preferences
 % si la liste de preferences est epuisee, retourner lensemble inchage
@@ -125,13 +141,15 @@ tryOffer(_, [], Ms, Ms).
 
 % on essaye le premier programme, arreter si succes
 
-tryOffer(ResidentID< [P|_], Ms, NewMs) :-
+tryOffer(ResidentID, [P|_], Ms, NewMs) :-
     tryMatch(ResidentID, P, Ms, NewMs), !. % essayer le programme P, couper si reussi
 
 % sinon essayer le prochain programme dans la liste de preferences
 
-tryOffer(ResidentID, Rest, Ms, NewMs). % passer au programme suivant
--------------------------
+tryOffer(ResidentID, [_|Rest], Ms, NewMs) :-
+    tryOffer(ResidentID, Rest, Ms, NewMs).  % passer au programme suivant
+
+
 
 
 % essaye dassigner un programme a un resident
@@ -145,7 +163,9 @@ offer(ResidentID, Ms, Ms) :-
 offer(ResidentID, Ms, NewMs) :-
     resident(ResidentID, _, Prefs), % recuperer la liste de preferences du resident
     tryOffer(ResidentID, Prefs, Ms, NewMs). % essayer chaque programme dans lordre de preference
------------------
+
+
+
 
 
 % appelle offer pour chaque resident de la liste
@@ -155,10 +175,12 @@ processAll([], Ms, Ms).
 
 % Offrir un jumelage au premier resident, puis continuer
 
-processAll([R|Reset], Ms, FinalMs) :-
+processAll([R|Rest], Ms, FinalMs) :-
     offer(R, Ms, TempMs), % offrir un jumelage au resident R
     processAll(Rest, TempMs, FinalMs). % continuer avec le reste des residents
-------------------
+
+
+
 
 % repete la boucle de jumelge jusqua ce que lensemble soit stable
 
@@ -170,7 +192,8 @@ iterate(Ms, FinalMs) :-
         FinalMs = NewMs ;   % stable : lensemble ne change plus alors on a terminer
         iterate(NewMs, FinalMs)     % pas stable : relancer un autre passage complet
     ).
-------------------------------
+
+
 
 % Affiche tous les residents apparies, groupe par programme
 % Aucun programme a afficher
@@ -182,7 +205,9 @@ printMatched([]).
 printMatched([match(P, Residents)|Rest]) :-
     printResidentsOfProgram(P, Residents),  % afficher tous les residents de ce programme
     printMatched(Rest). % continuer avec le reste des programmes
----------------------
+
+
+
 
 % affiche chaque resident apparie a un programme donner
 % aucun de residants dans ce programme
@@ -195,14 +220,15 @@ printResidentsOfProgram(P, [R|Rest]) :-
     writeMatchInfo(R, P),  % afficher les infos du resident R avec writeMatchInfo fourni
 
     printResidentsOfProgram(P, Rest).  % continuer avec le reste des resdients
-----------------------
+
 
 % affiche tous les residents qui nont pas ete appries
 
 printUnmatched(Ms) :-
     findall(R, (resident(R, _, _), \+ matched(R, _, Ms)), Unmatched), % collecter tous les residents non-appariers
     printUnmatchedList(Unmatched). % les afficher un par un
-------------
+
+
 
 % affiche chaque resident non apparier dans le bon format
 % aucun residents non appariers
@@ -217,13 +243,15 @@ printUnmatchedList([R|Rest]) :-
     write('XXX'), write(','),      % aucun programme assigne
     writeln('NOT_MATCHED'),        % etiquette indiquant non-apparie
     printUnmatchedList(Rest).      % continuer avec le reste
--------------------
+
+
 
 % compte le nombre de residents non appariers
 
 countUnmatched(Ms, Count) :-
     findall(R, (resident(R, _, _), \+ matched(R, _, Ms)), Unmatched),  % collecter les non-appariers
---------------------
+    length(Unmatched, Count). % compter le nombre de residents non-appariers
+
 
 % compte le total des postes non remplis dans tous les programmes.
 % plus de programmes, 0 postes disponibles
@@ -238,8 +266,18 @@ countAvailablePositions([match(P, Matched)|Rest], Total) :-
     Available is Cap - Filled, % calculer le nombre de postes encore disponibles
     countAvailablePositions(Rest, RestTotal), % calculer le reste
     Total is Available + RestTotal. % additionner pour obtenir le total
-------------------------
+
 
 
 % gale shapley
+
+gale_shapley :-
+    findall(match(P,[]), program(P,_,_,_), Ms0),  % initialiser lensemble vide (fourni dans lenonce)
+    iterate(Ms0, FinalMs),                         % executer lalgorithme jusqua stabilite
+    printMatched(FinalMs),                         % afficher tous les residents apparies
+    printUnmatched(FinalMs),                       % afficher tous les residents non apparies
+    countUnmatched(FinalMs, U),                    % compter les residents non apparies
+    countAvailablePositions(FinalMs, A),           % compter les postes encore disponibles
+    write('Number of unmatched residents: '), writeln(U),  % afficher le nombre de non-apparies
+    write('Number of positions available: '), writeln(A).  % afficher le nombre de postes disponibles
 
