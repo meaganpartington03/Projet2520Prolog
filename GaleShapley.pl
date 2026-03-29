@@ -1,6 +1,6 @@
 % Partie 3 du projet - prolog
 % Par : Meagan Partington 300416906
-% Anstasia Sardovskyy 300
+% Anastasia Sadovskyy 300426037
 
 % Donner par le prof
 
