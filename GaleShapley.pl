@@ -306,24 +306,16 @@ printUnmatchedListToFile([R|Rest], Stream) :-
 gale_shapley :-
     findall(match(P,[]), program(P,_,_,_), Ms0),  % initialiser lensemble vide (fourni dans lenonce)
     iterate(Ms0, FinalMs),     % executer lalgorithme jusqua stabilite
-    printMatched(FinalMs),     % afficher tous les residents apparies
-    printUnmatched(FinalMs),     % afficher tous les residents non apparies
+    printMatched(FinalMs),     % afficher tous les residents apparies dans la console
+    printUnmatched(FinalMs),     % afficher tous les residents non apparies dans la console
     countUnmatched(FinalMs, U),    % compter les residents non apparies
     countAvailablePositions(FinalMs, A),     % compter les postes encore disponibles
-    write('Number of unmatched residents: '), writeln(U),   % afficher le nombre de non-apparies
-    write('Number of positions available: '), writeln(A).    % afficher le nombre de postes disponibles
- 
- 
-% gale shapley - ecrit dans output.txt
- 
-gale_shapley_to_file :-
-    findall(match(P,[]), program(P,_,_,_), Ms0),  % initialiser lensemble vide
-    iterate(Ms0, FinalMs),     % executer lalgorithme
+    write('Number of unmatched residents: '), writeln(U),   % afficher dans la console
+    write('Number of positions available: '), writeln(A),   % afficher dans la console
     open('output.txt', write, Stream),  % ouvrir le fichier output.txt
-    printMatchedToFile(FinalMs, Stream),    % ecrire les residents apparies
-    printUnmatchedToFile(FinalMs, Stream),  % ecrire les residents non apparies
-    countUnmatched(FinalMs, U),    % compter les non-apparies
-    countAvailablePositions(FinalMs, A),    % compter les postes disponibles
+    printMatchedToFile(FinalMs, Stream),    % ecrire les residents apparies dans le fichier
+    printUnmatchedToFile(FinalMs, Stream),  % ecrire les residents non apparies dans le fichier
     write(Stream, 'Number of unmatched residents: '), writeln(Stream, U),   % ecrire dans le fichier
     write(Stream, 'Number of positions available: '), writeln(Stream, A),   % ecrire dans le fichier
     close(Stream).  % fermer le fichier
+ 
