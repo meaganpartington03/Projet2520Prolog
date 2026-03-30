@@ -8,7 +8,7 @@
  
 % Tests pour grand fichier
  
-:- [rp4000].
+ :- [rp4000].
  
  
 % Donner par le prof
